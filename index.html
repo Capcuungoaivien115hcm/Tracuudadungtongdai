@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hệ Thống Tra Cứu Địa Chỉ & Trực Ban</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; padding: 20px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 700px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+    .section { margin-bottom: 25px; padding: 20px; border: 1px solid #e1e8ed; border-radius: 10px; background: #ffffff; }
+    h3 { margin: 0 0 15px 0; font-size: 17px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    textarea, input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 14px; transition: border 0.3s; }
+    textarea:focus, input:focus { border-color: #007bff; outline: none; }
+    .btn-group { display: flex; gap: 10px; margin: 10px 0; }
+    button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: opacity 0.2s; }
+    button:active { opacity: 0.8; }
+    .btn-convert { background: #007bff; }
+    .btn-clear { background: #6c757d; }
+    .result-item { display: flex; align-items: center; justify-content: space-between; background: #f8faff; padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #eef2f7; font-weight: bold; color: #0056b3; }
+    .btn-copy { background: white; color: #007bff; border: 1px solid #007bff; padding: 5px 10px; font-size: 12px; border-radius: 4px; flex: none; width: auto; }
+    .history-container { margin-top: 15px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
+    .history-header { background: #f8f9fa; padding: 10px; cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+    .history-content { display: block; padding: 10px; font-size: 12px; border-top: 1px solid #ddd; background: #fff; }
+    .hist-item { padding: 5px 0; border-bottom: 1px dashed #eee; color: #555; }
+    .hist-item:last-child { border-bottom: none; }
+    .search-wrapper { position: relative; }
+    .suggestion-box { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; z-index: 10; display: none; max-height: 200px; overflow-y: auto; border-radius: 0 0 6px 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+    .suggest-item:hover, .suggest-item.active { background: #e8f5e9; font-weight: bold; }
+    .phone-card { margin-top: 15px; padding: 15px; border: 1px solid #28a745; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #f9fff9; }
+  </style>
+</head>
+<body>
+  <div class="container" style="max-width: 1100px;"> <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+      
+      <div class="section" style="flex: 1; min-width: 350px; margin-bottom: 0;">
+        <h3 style="color:#0056b3"><i class="fa-solid fa-map-location-dot"></i> CHUYỂN ĐỔI ĐỊA CHỈ MỚI</h3>
+        <textarea id="addrIn" placeholder="Nhập địa chỉ cũ..." rows="3" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();doConvert();}"></textarea>
+        <div class="btn-group">
+          <button id="btnCvt" class="btn-convert" onclick="doConvert()">CHUYỂN ĐỔI</button>
+          <button class="btn-clear" onclick="clearAll()">XÓA</button>
+        </div>
+        <div id="resultArea"></div>
+        <div class="history-container">
+          <div class="history-header" onclick="toggleHistory()">
+            <span><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử (3 cái gần nhất)</span>
+            <i id="histIcon" class="fa-solid fa-chevron-up"></i>
+          </div>
+          <div id="histLog" class="history-content">Trống</div>
+        </div>
+      </div>
+
+      <div style="flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 20px;">
+        <div class="section" style="margin-bottom: 0; flex: 1;">
+          <h3 style="color:#28a745"><i class="fa-solid fa-phone"></i> TRA CỨU TRỰC BAN PHƯỜNG</h3>
+          <div class="search-wrapper">
+            <input type="text" id="wardSearch" placeholder="Nhập tên phường..." onkeyup="handleSearchKey(event)" oninput="filterSuggestions()">
+            <div id="suggestionBox" class="suggestion-box"></div>
+          </div>
+          <div id="finalPhoneResult"></div>
+        </div>
+
+        <div class="section" style="margin-bottom: 0; flex: 1;">
+          <h3 style="color:#d9534f"><i class="fa-regular fa-hospital"></i> TRA CỨU SĐT BỆNH VIỆN</h3>
+          <div class="search-wrapper">
+            <input type="text" id="hospitalSearch" placeholder="Nhập tên bệnh viện..." onkeyup="handleHospitalSearchKey(event)" oninput="filterHospitalSuggestions()">
+            <div id="hospitalSuggestionBox" class="suggestion-box"></div>
+          </div>
+          <div id="finalHospitalResult"></div>
+        </div>
+      </div>
+    </div>
+
+   <div class="section" style="width: 100%;">
+      <h3 style="color:#8e44ad"><i class="fa-solid fa-stethoscopes"></i> TRA CỨU DANH SÁCH BỆNH VIỆN THEO MẶT BỆNH</h3>
+      
+      <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+        <select id="specialtySelect" onchange="showSpecialtyTable()" style="flex: 1; min-width: 250px; max-width: 350px; padding:12px; border-radius:6px; border:1px solid #ced4da; background-color: #fcfaff; font-weight: bold;">
+          <option value="">-- Chọn mặt bệnh (Ví dụ: Đột quỵ, Sản khoa...) --</option>
+        </select>
+        
+        <input type="text" id="specialtySearchInput" placeholder="🔍 Nhập tên Bệnh viện hoặc Địa chỉ để lọc nhanh..." onkeyup="filterSpecialtyTable()" style="flex: 2; min-width: 300px; padding:12px; border-radius:6px; border:1px solid #ced4da; display: none;">
+      </div>
+
+      <div id="specialtyResult" tabindex="0" style="overflow: auto; max-height: 550px; background: white; border-radius: 8px; outline: none; border: 1px solid #ddd;">
+        </div>
+    </div>
+
+  </div>
+</body>
+  <script>
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbyBn1yeW97wyZYxTaWsfRedPfxAkdFufQjmLxql5xnHvW09LwE9z9qAnuAp1xg1Xa9C/exec"; 
+    let allPhones = {}, historyList = [], currentFocus = -1;
+
+    // 1. Hàm chuyển đổi địa chỉ
+    function doConvert() {
+      const val = document.getElementById('addrIn').value.trim();
+      if(!val) return;
+      
+      const btn = document.getElementById('btnCvt');
+      btn.innerText = "ĐANG XỬ LÝ...";
+      btn.disabled = true;
+
+      fetch(`${webAppUrl}?diaChiCu=${encodeURIComponent(val)}`)
+        .then(r => r.text())
+        .then(res => {
+          btn.innerText = "CHUYỂN ĐỔI";
+          btn.disabled = false;
+          const resultArea = document.getElementById('resultArea');
+          
+          if(res.includes("❌")) {
+            resultArea.innerHTML = `<div style="color:red; font-weight:bold; margin-top:10px;">${res}</div>`;
+            return;
+          }
+
+          const lines = res.split('\n');
+          resultArea.innerHTML = lines.map(l => `
+            <div class="result-item">
+              <span>${l}</span>
+              <button class="btn-copy" onclick="copyTxt('${l}', this)"><i class="fa-regular fa-copy"></i> Copy</button>
+            </div>
+          `).join('');
+          
+          updateHistory(val, lines.join(' | '));
+        })
+        .catch(err => {
+          btn.innerText = "CHUYỂN ĐỔI";
+          btn.disabled = false;
+          alert("Lỗi kết nối: " + err);
+        });
+    }
+
+    // 2. Cập nhật lịch sử (Giới hạn 3 mục)
+    function updateHistory(oldAddr, newAddr) {
+      historyList.unshift({ old: oldAddr, new: newAddr });
+      if(historyList.length > 3) historyList.pop(); // Xóa cái cũ nhất nếu quá 3
+      
+      const log = document.getElementById('histLog');
+      log.innerHTML = historyList.map(h => `
+        <div class="hist-item">• <b>${h.old}</b> → <span style="color:#28a745">${h.new}</span></div>
+      `).join('');
+    }
+
+    function toggleHistory() {
+      const content = document.getElementById('histLog');
+      const icon = document.getElementById('histIcon');
+      if(content.style.display === "none") {
+        content.style.display = "block";
+        icon.className = "fa-solid fa-chevron-up";
+      } else {
+        content.style.display = "none";
+        icon.className = "fa-solid fa-chevron-down";
+      }
+    }
+
+    // 3. Tra cứu trực ban & Autocomplete
+    function filterSuggestions() {
+      const q = document.getElementById('wardSearch').value.toLowerCase().trim();
+      const box = document.getElementById('suggestionBox');
+      box.innerHTML = ''; currentFocus = -1;
+      if(!q) { box.style.display="none"; return; }
+      
+      const matches = Object.keys(allPhones).filter(k => k.toLowerCase().includes(q));
+      if(matches.length > 0) {
+        box.style.display = "block";
+        matches.forEach(m => {
+          const div = document.createElement("div");
+          div.className = "suggest-item";
+          div.innerText = "Phường " + m;
+          div.onclick = () => selectWard(m);
+          box.appendChild(div);
+        });
+      } else {
+        box.style.display = "none";
+      }
+    }
+
+    function handleSearchKey(e) {
+      const box = document.getElementById('suggestionBox');
+      const items = box.getElementsByClassName("suggest-item");
+      if (e.keyCode == 40) { // Down
+        currentFocus++; addActive(items);
+      } else if (e.keyCode == 38) { // Up
+        currentFocus--; addActive(items);
+      } else if (e.keyCode == 13) { // Enter
+        e.preventDefault();
+        if (currentFocus > -1) items[currentFocus].click();
+      }
+    }
+
+    function addActive(items) {
+      if (!items) return false;
+      for (let i = 0; i < items.length; i++) items[i].classList.remove("active");
+      if (currentFocus >= items.length) currentFocus = 0;
+      if (currentFocus < 0) currentFocus = (items.length - 1);
+      items[currentFocus].classList.add("active");
+      items[currentFocus].scrollIntoView({ block: 'nearest' });
+    }
+
+    function selectWard(m) {
+      document.getElementById('wardSearch').value = "Phường " + m;
+      document.getElementById('suggestionBox').style.display = "none";
+      document.getElementById('finalPhoneResult').innerHTML = `
+        <div class="phone-card">
+          <span><b>Phường ${m}</b></span>
+          <span style="color:#d9534f; font-weight:bold;"><i class="fa-solid fa-phone-volume"></i> ${allPhones[m].join(', ')}</span>
+        </div>
+      `;
+    }
+
+    function clearAll() {
+      document.getElementById('addrIn').value = '';
+      document.getElementById('resultArea').innerHTML = '';
+    }
+
+    function copyTxt(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Xong!';
+        setTimeout(() => { btn.innerHTML = originalText; }, 1500);
+      });
+    }
+
+// thêm tính năng 3
+// Thêm biến chứa dữ liệu bệnh viện
+    let allHospitals = {}, currentHospitalFocus = -1;
+
+    // Kéo dữ liệu bệnh viện khi load trang (để chung với getPhones)
+    window.onload = () => {
+      // Load Phường (Code cũ)
+      fetch(`${webAppUrl}?action=getPhones`)
+        .then(r => r.json()).then(data => { allPhones = data; })
+        .catch(e => console.log("Không thể tải danh bạ: " + e));
+      
+      // Load Bệnh viện (Code mới)
+      fetch(`${webAppUrl}?action=getHospitals`)
+        .then(r => r.json()).then(data => { allHospitals = data; })
+        .catch(e => console.log("Không thể tải bệnh viện: " + e));
+    };
+
+    // Hàm xử lý tìm kiếm Bệnh viện
+    function filterHospitalSuggestions() {
+      const q = document.getElementById('hospitalSearch').value.toLowerCase().trim();
+      const box = document.getElementById('hospitalSuggestionBox');
+      box.innerHTML = ''; currentHospitalFocus = -1;
+      if(!q) { box.style.display="none"; return; }
+      
+      const matches = Object.keys(allHospitals).filter(k => k.toLowerCase().includes(q));
+      if(matches.length > 0) {
+        box.style.display = "block";
+        matches.forEach(m => {
+          const div = document.createElement("div");
+          div.className = "suggest-item";
+          div.innerText = m;
+          div.onclick = () => selectHospital(m);
+          box.appendChild(div);
+        });
+      } else {
+        box.style.display = "none";
+      }
+    }
+
+    // Hàm xử lý phím mũi tên cho Bệnh viện
+    function handleHospitalSearchKey(e) {
+      const box = document.getElementById('hospitalSuggestionBox');
+      const items = box.getElementsByClassName("suggest-item");
+      if (e.keyCode == 40) { currentHospitalFocus++; addActiveHospital(items); } 
+      else if (e.keyCode == 38) { currentHospitalFocus--; addActiveHospital(items); } 
+      else if (e.keyCode == 13) { 
+        e.preventDefault(); 
+        if (currentHospitalFocus > -1) items[currentHospitalFocus].click(); 
+      }
+    }
+
+    function addActiveHospital(items) {
+      if (!items) return false;
+      for (let i = 0; i < items.length; i++) items[i].classList.remove("active");
+      if (currentHospitalFocus >= items.length) currentHospitalFocus = 0;
+      if (currentHospitalFocus < 0) currentHospitalFocus = (items.length - 1);
+      items[currentHospitalFocus].classList.add("active");
+      items[currentHospitalFocus].scrollIntoView({ block: 'nearest' });
+    }
+
+    // Hàm hiển thị Bệnh viện khi chọn
+    function selectHospital(m) {
+      document.getElementById('hospitalSearch').value = m;
+      document.getElementById('hospitalSuggestionBox').style.display = "none";
+      
+      const data = allHospitals[m];
+      document.getElementById('finalHospitalResult').innerHTML = `
+        <div style="margin-top: 15px; padding: 15px; border: 1px solid #d9534f; border-radius: 8px; background: #fff5f5;">
+          <div style="font-weight: bold; color: #d9534f; margin-bottom: 10px; font-size: 16px;">🏥 ${m}</div>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 14px;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f5c6c6; padding-bottom: 5px;">
+              <span><b>SĐT Nội bộ:</b></span> <span>${data.noiBo}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f5c6c6; padding-bottom: 5px;">
+              <span><b>SĐT Bàn:</b></span> <span>${data.sdtBan}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span><b>Khác:</b></span> <span>${data.khac}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+let allSpecialties = {};
+
+    // Cập nhật hàm window.onload để lấy thêm dữ liệu mặt bệnh
+    const oldLoad = window.onload;
+    window.onload = () => {
+      if (oldLoad) oldLoad();
+      fetch(`${webAppUrl}?action=getSpecialties`)
+        .then(r => r.json()).then(data => { 
+          allSpecialties = data;
+          const select = document.getElementById('specialtySelect');
+          Object.keys(data).forEach(s => {
+            let opt = document.createElement('option');
+            opt.value = s; opt.innerText = s;
+            select.appendChild(opt);
+          });
+        });
+    };
+// tinh nang 4
+    let currentSpecialtyData = null; // Biến lưu tạm dữ liệu của sheet đang xem
+
+    // Hàm 1: Chạy khi người dùng chọn mặt bệnh từ Menu xổ xuống
+    function showSpecialtyTable() {
+      const specialty = document.getElementById('specialtySelect').value;
+      const resDiv = document.getElementById('specialtyResult');
+      const searchInput = document.getElementById('specialtySearchInput');
+
+      if (!specialty) { 
+          resDiv.innerHTML = ''; 
+          searchInput.style.display = 'none'; // Ẩn thanh tìm kiếm nếu chưa chọn
+          return; 
+      }
+
+      currentSpecialtyData = allSpecialties[specialty];
+      searchInput.style.display = 'block'; // Hiện thanh tìm kiếm
+      searchInput.value = ''; // Xóa chữ cũ (nếu có) khi đổi qua mặt bệnh khác
+
+      renderSpecialtyTable(currentSpecialtyData.rows); 
+      resDiv.focus(); // Lập tức "bắt nét" vào bảng để người dùng bấm phím mũi tên Qua Phải/Trái được ngay
+    }
+
+    // Hàm 2: Chạy khi người dùng gõ chữ vào thanh tìm kiếm
+    function filterSpecialtyTable() {
+        if (!currentSpecialtyData) return;
+        const keyword = document.getElementById('specialtySearchInput').value.toLowerCase();
+        
+        // Tiến hành lọc dữ liệu
+        const filteredRows = currentSpecialtyData.rows.filter(row => {
+            let isCategory = row[1] === "";
+            if (keyword === "") return true; // Trống thì hiện hết
+            if (isCategory) return false; // Khi tìm kiếm thì ẩn các dòng tựa đề phân loại màu tím đi cho đỡ rối
+            
+            // Tìm chữ trong toàn bộ thông tin của bệnh viện (Tên, Địa chỉ, SĐT...)
+            const rowString = row.join(" ").toLowerCase();
+            return rowString.includes(keyword);
+        });
+
+        renderSpecialtyTable(filteredRows);
+    }
+
+    // Hàm 3: Chuyên làm nhiệm vụ "Vẽ" bảng ra màn hình
+    function renderSpecialtyTable(rowsToRender) {
+      const resDiv = document.getElementById('specialtyResult');
+      
+      if (!currentSpecialtyData || !currentSpecialtyData.headers) {
+          resDiv.innerHTML = '<p style="color:red;">Không có dữ liệu.</p>'; return; 
+      }
+
+      // Khởi tạo bảng với thẻ thead và position: sticky để khóa tiêu đề
+      let html = `<table style="width:100%; border-collapse:collapse; font-size:13px; background: white; white-space: nowrap; position: relative;">
+        <thead style="position: sticky; top: 0; z-index: 10;">
+          <tr style="background:#8e44ad; color:white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">`;
+      
+      currentSpecialtyData.headers.forEach(h => {
+        html += `<th style="padding:10px 8px; border:1px solid #ddd; text-align:center;">${h}</th>`;
+      });
+      html += `</tr></thead><tbody>`;
+      
+      // Nếu tìm không thấy bệnh viện nào khớp chữ
+      if (rowsToRender.length === 0) {
+          html += `<tr><td colspan="${currentSpecialtyData.headers.length}" style="padding: 15px; text-align: center; color: red;">Không tìm thấy bệnh viện nào khớp với từ khóa.</td></tr>`;
+      } else {
+          rowsToRender.forEach(row => {
+            let isCategory = row[1] === ""; 
+
+            if (isCategory) {
+                html += `<tr style="background:#f4ebf9;">
+                    <td colspan="${currentSpecialtyData.headers.length}" style="padding:10px 8px; border:1px solid #ddd; font-weight:bold; color:#8e44ad; text-align:left;">
+                        <i class="fa-solid fa-layer-group"></i> ${row[0]}
+                    </td>
+                </tr>`;
+            } else {
+                html += `<tr>`;
+                row.forEach((cell, index) => {
+                    let cellText = cell;
+                    if (cellText.toLowerCase() === 'x') {
+                        cellText = `<span style="color:#28a745; font-weight:bold; font-size: 16px;">✔</span>`;
+                    }
+
+                    // Căn chỉnh khoảng cách các cột
+                    let style = "padding:8px; border:1px solid #ddd; text-align:center;";
+                    if (index === 0) style = "padding:8px; border:1px solid #ddd; font-weight:bold; text-align:left; white-space: normal; min-width: 150px;";
+                    if (index === 1) style = "padding:8px; border:1px solid #ddd; text-align:left; white-space: normal; min-width: 250px;";
+                    if (index === 2) style = "padding:8px; border:1px solid #ddd; color:red; font-weight:bold; white-space: normal;";
+
+                    html += `<td style="${style}">${cellText}</td>`;
+                });
+                html += `</tr>`;
+            }
+          });
+      }
+      
+      html += `</tbody></table>`;
+      resDiv.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
