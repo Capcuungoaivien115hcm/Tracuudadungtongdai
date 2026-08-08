@@ -8,8 +8,8 @@
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; padding: 20px; display: flex; justify-content: center; }
     .container { width: 100%; max-width: 1100px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-    .section { margin-bottom: 25px; padding: 20px; border: 1px solid #e1e8ed; border-radius: 10px; background: #ffffff; }
-    h3 { margin: 0 0 15px 0; font-size: 17px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    .section { margin-bottom: 20px; padding: 20px; border: 1px solid #e1e8ed; border-radius: 10px; background: #ffffff; }
+    h3 { margin: 0 0 15px 0; font-size: 16px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
     textarea, input { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 14px; transition: border 0.3s; }
     textarea:focus, input:focus { border-color: #007bff; outline: none; }
     .btn-group { display: flex; gap: 10px; margin: 10px 0; }
@@ -26,36 +26,50 @@
     .hist-item:last-child { border-bottom: none; }
     .search-wrapper { position: relative; }
     .suggestion-box { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; z-index: 10; display: none; max-height: 200px; overflow-y: auto; border-radius: 0 0 6px 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+    .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; }
     .suggest-item:hover, .suggest-item.active { background: #e8f5e9; font-weight: bold; }
     .phone-card { margin-top: 15px; padding: 15px; border: 1px solid #28a745; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #f9fff9; }
+    .logo-container { display: flex; justify-content: center; align-items: center; padding: 10px; background: #ffffff; min-height: 120px; }
+    .logo-container img { max-width: 100%; max-height: 150px; object-fit: contain; border-radius: 8px; }
   </style>
 </head>
 <body>
   <div class="container">
     <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
       
-      <!-- Khối Chuyển đổi địa chỉ -->
-      <div class="section" style="flex: 1; min-width: 350px; margin-bottom: 0;">
-        <h3 style="color:#0056b3"><i class="fa-solid fa-map-location-dot"></i> CHUYỂN ĐỔI ĐỊA CHỈ MỚI</h3>
-        <textarea id="addrIn" placeholder="Nhập địa chỉ cũ..." rows="3" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();doConvert();}"></textarea>
-        <div class="btn-group">
-          <button id="btnCvt" class="btn-convert" onclick="doConvert()">CHUYỂN ĐỔI</button>
-          <button class="btn-clear" onclick="clearAll()">XÓA</button>
+      <!-- CỘT TRÁI: Logo + Chuyển đổi địa chỉ -->
+      <div style="flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 15px;">
+        
+        <!-- Khối Logo -->
+        <div class="section logo-container" style="margin-bottom: 0;">
+          <img src="https://lh3.googleusercontent.com/d/1GbLCoMdr_pigkJf5AqLGdjESsd3Fk7kA" alt="Logo đơn vị" onerror="this.src='https://drive.google.com/thumbnail?id=1GbLCoMdr_pigkJf5AqLGdjESsd3Fk7kA&sz=w1000';">
         </div>
-        <div id="resultArea"></div>
-        <div class="history-container">
-          <div class="history-header" onclick="toggleHistory()">
-            <span><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử (3 cái gần nhất)</span>
-            <i id="histIcon" class="fa-solid fa-chevron-up"></i>
+
+        <!-- Khối Chuyển đổi địa chỉ -->
+        <div class="section" style="margin-bottom: 0; flex: 1;">
+          <h3 style="color:#0056b3"><i class="fa-solid fa-map-location-dot"></i> CHUYỂN ĐỔI ĐỊA CHỈ MỚI</h3>
+          <textarea id="addrIn" placeholder="Nhập địa chỉ cũ..." rows="3" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();doConvert();}"></textarea>
+          <div class="btn-group">
+            <button id="btnCvt" class="btn-convert" onclick="doConvert()">CHUYỂN ĐỔI</button>
+            <button class="btn-clear" onclick="clearAll()">XÓA</button>
           </div>
-          <div id="histLog" class="history-content">Trống</div>
+          <div id="resultArea"></div>
+          <div class="history-container">
+            <div class="history-header" onclick="toggleHistory()">
+              <span><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử (3 cái gần nhất)</span>
+              <i id="histIcon" class="fa-solid fa-chevron-up"></i>
+            </div>
+            <div id="histLog" class="history-content">Trống</div>
+          </div>
         </div>
+
       </div>
 
-      <!-- Khối Tra cứu SĐT -->
-      <div style="flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 20px;">
-        <div class="section" style="margin-bottom: 0; flex: 1;">
+      <!-- CỘT PHẢI: 3 Khối Tra cứu SĐT -->
+      <div style="flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 15px;">
+        
+        <!-- Khối 1: Phường -->
+        <div class="section" style="margin-bottom: 0;">
           <h3 style="color:#28a745"><i class="fa-solid fa-phone"></i> TRA CỨU TRỰC BAN CA PHƯỜNG & ĐIỆN LỰC</h3>
           <div class="search-wrapper">
             <input type="text" id="wardSearch" placeholder="Nhập tên phường..." onkeyup="handleSearchKey(event)" oninput="filterSuggestions()">
@@ -64,7 +78,8 @@
           <div id="finalPhoneResult"></div>
         </div>
 
-        <div class="section" style="margin-bottom: 0; flex: 1;">
+        <!-- Khối 2: Bệnh viện -->
+        <div class="section" style="margin-bottom: 0;">
           <h3 style="color:#d9534f"><i class="fa-regular fa-hospital"></i> TRA CỨU SĐT BỆNH VIỆN & PKHĐ</h3>
           <div class="search-wrapper">
             <input type="text" id="hospitalSearch" placeholder="Nhập tên bệnh viện..." onkeyup="handleHospitalSearchKey(event)" oninput="filterHospitalSuggestions()">
@@ -72,10 +87,21 @@
           </div>
           <div id="finalHospitalResult"></div>
         </div>
+
+        <!-- Khối 3: Hành chính công cấp xã -->
+        <div class="section" style="margin-bottom: 0;">
+          <h3 style="color:#e67e22"><i class="fa-solid fa-building-columns"></i> TT PHỤC VỤ HÀNH CHÍNH CÔNG CẤP XÃ</h3>
+          <div class="search-wrapper">
+            <input type="text" id="publicSearch" placeholder="Nhập tên phường/xã..." onkeyup="handlePublicSearchKey(event)" oninput="filterPublicSuggestions()">
+            <div id="publicSuggestionBox" class="suggestion-box"></div>
+          </div>
+          <div id="finalPublicResult"></div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Khối Tra cứu Mặt Bệnh -->
+    <!-- KHỐI DƯỚI CÙNG: Tra cứu Mặt Bệnh -->
     <div class="section" style="width: 100%; box-sizing: border-box;">
       <h3 style="color:#8e44ad"><i class="fa-solid fa-stethoscopes"></i> TRA CỨU DANH SÁCH BỆNH VIỆN THEO MẶT BỆNH</h3>
       
@@ -92,38 +118,61 @@
   </div>
 
   <script>
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbyBn1yeW97wyZYxTaWsfRedPfxAkdFufQjmLxql5xnHvW09LwE9z9qAnuAp1xg1Xa9C/exec"; 
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbz3yvaCZNfc1zTRQTuv4Zvr_9nCbyeOyzXYrhRl3XLKK8xdldh0iQrLgz-I2UHgEM9o4w/exec"; 
     
-    let allPhones = {}, allHospitals = {}, allSpecialties = {};
+    let allPhones = {}, allHospitals = {}, allSpecialties = {}, allPublicServices = {};
     let historyList = [];
-    let currentFocus = -1, currentHospitalFocus = -1;
+    let currentFocus = -1, currentHospitalFocus = -1, currentPublicFocus = -1;
     let currentSpecialtyData = null;
 
-    // Tải toàn bộ dữ liệu song song khi load trang
-    window.onload = () => {
-      // 1. Tải Phường
-      fetch(`${webAppUrl}?action=getPhones`)
-        .then(r => r.json()).then(data => { allPhones = data; })
-        .catch(e => console.error("Lỗi tải phường: " + e));
-      
-      // 2. Tải Bệnh viện
-      fetch(`${webAppUrl}?action=getHospitals`)
-        .then(r => r.json()).then(data => { allHospitals = data; })
-        .catch(e => console.error("Lỗi tải bệnh viện: " + e));
+    // Helper bỏ dấu tiếng Việt
+    function removeVietnameseTones(str) {
+      if (!str) return '';
+      return str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+        .toLowerCase();
+    }
 
-      // 3. Tải Mặt bệnh
-      fetch(`${webAppUrl}?action=getSpecialties`)
-        .then(r => r.json()).then(data => { 
-          allSpecialties = data;
-          const select = document.getElementById('specialtySelect');
-          Object.keys(data).forEach(s => {
-            let opt = document.createElement('option');
-            opt.value = s; 
-            opt.innerText = s;
-            select.appendChild(opt);
-          });
-        })
-        .catch(e => console.error("Lỗi tải mặt bệnh: " + e));
+    // Helper làm sạch từ khóa
+    function cleanPublicName(str) {
+      let s = removeVietnameseTones(str);
+      s = s.replace(/^(tt phục vụ hành chính công|ubnd|trung tâm|phường|xã|thị trấn|p\.|x\.|tt\.)\s+/gi, '');
+      s = s.replace(/\b(phuong|xa|thi tran|p\.|x\.|tt\.)\b/gi, '');
+      return s.trim();
+    }
+
+    // Hàm so sánh thông minh
+    function isMatch(key, query) {
+      if (!key || !query) return false;
+      const normKey = removeVietnameseTones(key);
+      const normQuery = removeVietnameseTones(query);
+      if (normKey.includes(normQuery) || normQuery.includes(normKey)) return true;
+
+      const cleanK = cleanPublicName(key);
+      const cleanQ = cleanPublicName(query);
+      if (cleanK && cleanQ) {
+        return cleanK.includes(cleanQ) || cleanQ.includes(cleanK);
+      }
+      return false;
+    }
+
+    // Load tất cả dữ liệu khi trang khởi chạy
+    window.onload = () => {
+      fetch(`${webAppUrl}?action=getPhones`).then(r => r.json()).then(d => { allPhones = d; }).catch(e => console.error(e));
+      fetch(`${webAppUrl}?action=getHospitals`).then(r => r.json()).then(d => { allHospitals = d; }).catch(e => console.error(e));
+      fetch(`${webAppUrl}?action=getPublicServices`).then(r => r.json()).then(d => { allPublicServices = d; }).catch(e => console.error(e));
+
+      fetch(`${webAppUrl}?action=getSpecialties`).then(r => r.json()).then(d => { 
+        allSpecialties = d;
+        const select = document.getElementById('specialtySelect');
+        Object.keys(d).forEach(s => {
+          let opt = document.createElement('option');
+          opt.value = s; opt.innerText = s;
+          select.appendChild(opt);
+        });
+      }).catch(e => console.error(e));
     };
 
     // 1. Chuyển đổi địa chỉ
@@ -141,12 +190,10 @@
           btn.innerText = "CHUYỂN ĐỔI";
           btn.disabled = false;
           const resultArea = document.getElementById('resultArea');
-          
           if(res.includes("❌")) {
             resultArea.innerHTML = `<div style="color:red; font-weight:bold; margin-top:10px;">${res}</div>`;
             return;
           }
-
           const lines = res.split('\n');
           resultArea.innerHTML = lines.map(l => `
             <div class="result-item">
@@ -154,12 +201,10 @@
               <button class="btn-copy" onclick="copyTxt('${l}', this)"><i class="fa-regular fa-copy"></i> Copy</button>
             </div>
           `).join('');
-          
           updateHistory(val, lines.join(' | '));
         })
         .catch(err => {
-          btn.innerText = "CHUYỂN ĐỔI";
-          btn.disabled = false;
+          btn.innerText = "CHUYỂN ĐỔI"; btn.disabled = false;
           alert("Lỗi kết nối: " + err);
         });
     }
@@ -167,9 +212,7 @@
     function updateHistory(oldAddr, newAddr) {
       historyList.unshift({ old: oldAddr, new: newAddr });
       if(historyList.length > 3) historyList.pop();
-      
-      const log = document.getElementById('histLog');
-      log.innerHTML = historyList.map(h => `
+      document.getElementById('histLog').innerHTML = historyList.map(h => `
         <div class="hist-item">• <b>${h.old}</b> → <span style="color:#28a745">${h.new}</span></div>
       `).join('');
     }
@@ -177,23 +220,18 @@
     function toggleHistory() {
       const content = document.getElementById('histLog');
       const icon = document.getElementById('histIcon');
-      if(content.style.display === "none") {
-        content.style.display = "block";
-        icon.className = "fa-solid fa-chevron-up";
-      } else {
-        content.style.display = "none";
-        icon.className = "fa-solid fa-chevron-down";
-      }
+      content.style.display = content.style.display === "none" ? "block" : "none";
+      icon.className = content.style.display === "none" ? "fa-solid fa-chevron-down" : "fa-solid fa-chevron-up";
     }
 
     // 2. Tra cứu phường
     function filterSuggestions() {
-      const q = document.getElementById('wardSearch').value.toLowerCase().trim();
+      const q = document.getElementById('wardSearch').value.trim();
       const box = document.getElementById('suggestionBox');
       box.innerHTML = ''; currentFocus = -1;
       if(!q) { box.style.display="none"; return; }
       
-      const matches = Object.keys(allPhones).filter(k => k.toLowerCase().includes(q));
+      const matches = Object.keys(allPhones).filter(k => isMatch(k, q));
       if(matches.length > 0) {
         box.style.display = "block";
         matches.forEach(m => {
@@ -203,29 +241,18 @@
           div.onclick = () => selectWard(m);
           box.appendChild(div);
         });
-      } else {
-        box.style.display = "none";
-      }
+      } else { box.style.display = "none"; }
     }
 
     function handleSearchKey(e) {
       const box = document.getElementById('suggestionBox');
       const items = box.getElementsByClassName("suggest-item");
-      if (e.keyCode == 40) { currentFocus++; addActive(items); } 
-      else if (e.keyCode == 38) { currentFocus--; addActive(items); } 
+      if (e.keyCode == 40) { currentFocus++; addActive(items, currentFocus); } 
+      else if (e.keyCode == 38) { currentFocus--; addActive(items, currentFocus); } 
       else if (e.keyCode == 13) {
         e.preventDefault();
         if (currentFocus > -1 && items[currentFocus]) items[currentFocus].click();
       }
-    }
-
-    function addActive(items) {
-      if (!items || !items.length) return false;
-      for (let i = 0; i < items.length; i++) items[i].classList.remove("active");
-      if (currentFocus >= items.length) currentFocus = 0;
-      if (currentFocus < 0) currentFocus = (items.length - 1);
-      items[currentFocus].classList.add("active");
-      items[currentFocus].scrollIntoView({ block: 'nearest' });
     }
 
     function selectWard(m) {
@@ -239,27 +266,14 @@
       `;
     }
 
-    function clearAll() {
-      document.getElementById('addrIn').value = '';
-      document.getElementById('resultArea').innerHTML = '';
-    }
-
-    function copyTxt(text, btn) {
-      navigator.clipboard.writeText(text).then(() => {
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> Xong!';
-        setTimeout(() => { btn.innerHTML = originalText; }, 1500);
-      });
-    }
-
     // 3. Tra cứu Bệnh viện
     function filterHospitalSuggestions() {
-      const q = document.getElementById('hospitalSearch').value.toLowerCase().trim();
+      const q = document.getElementById('hospitalSearch').value.trim();
       const box = document.getElementById('hospitalSuggestionBox');
       box.innerHTML = ''; currentHospitalFocus = -1;
       if(!q) { box.style.display="none"; return; }
       
-      const matches = Object.keys(allHospitals).filter(k => k.toLowerCase().includes(q));
+      const matches = Object.keys(allHospitals).filter(k => isMatch(k, q));
       if(matches.length > 0) {
         box.style.display = "block";
         matches.forEach(m => {
@@ -269,40 +283,28 @@
           div.onclick = () => selectHospital(m);
           box.appendChild(div);
         });
-      } else {
-        box.style.display = "none";
-      }
+      } else { box.style.display = "none"; }
     }
 
     function handleHospitalSearchKey(e) {
       const box = document.getElementById('hospitalSuggestionBox');
       const items = box.getElementsByClassName("suggest-item");
-      if (e.keyCode == 40) { currentHospitalFocus++; addActiveHospital(items); } 
-      else if (e.keyCode == 38) { currentHospitalFocus--; addActiveHospital(items); } 
+      if (e.keyCode == 40) { currentHospitalFocus++; addActive(items, currentHospitalFocus); } 
+      else if (e.keyCode == 38) { currentHospitalFocus--; addActive(items, currentHospitalFocus); } 
       else if (e.keyCode == 13) { 
         e.preventDefault(); 
         if (currentHospitalFocus > -1 && items[currentHospitalFocus]) items[currentHospitalFocus].click(); 
       }
     }
 
-    function addActiveHospital(items) {
-      if (!items || !items.length) return false;
-      for (let i = 0; i < items.length; i++) items[i].classList.remove("active");
-      if (currentHospitalFocus >= items.length) currentHospitalFocus = 0;
-      if (currentHospitalFocus < 0) currentHospitalFocus = (items.length - 1);
-      items[currentHospitalFocus].classList.add("active");
-      items[currentHospitalFocus].scrollIntoView({ block: 'nearest' });
-    }
-
     function selectHospital(m) {
       document.getElementById('hospitalSearch').value = m;
       document.getElementById('hospitalSuggestionBox').style.display = "none";
-      
       const data = allHospitals[m];
       document.getElementById('finalHospitalResult').innerHTML = `
         <div style="margin-top: 15px; padding: 15px; border: 1px solid #d9534f; border-radius: 8px; background: #fff5f5;">
-          <div style="font-weight: bold; color: #d9534f; margin-bottom: 10px; font-size: 16px;">🏥 ${m}</div>
-          <div style="display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 14px;">
+          <div style="font-weight: bold; color: #d9534f; margin-bottom: 10px; font-size: 15px;">🏥 ${m}</div>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 13px;">
             <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f5c6c6; padding-bottom: 5px;">
               <span><b>SĐT Nội bộ:</b></span> <span>${data.noiBo || '-'}</span>
             </div>
@@ -317,48 +319,119 @@
       `;
     }
 
-    // 4. Tra cứu danh sách theo mặt bệnh
+    // 4. Tra cứu Hành chính công cấp xã
+    function filterPublicSuggestions() {
+      const q = document.getElementById('publicSearch').value.trim();
+      const box = document.getElementById('publicSuggestionBox');
+      box.innerHTML = ''; currentPublicFocus = -1;
+      if(!q) { box.style.display="none"; return; }
+      
+      const matches = Object.keys(allPublicServices).filter(k => isMatch(k, q));
+
+      if(matches.length > 0) {
+        box.style.display = "block";
+        matches.forEach(m => {
+          const div = document.createElement("div");
+          div.className = "suggest-item";
+          div.innerText = m;
+          div.onclick = () => selectPublic(m);
+          box.appendChild(div);
+        });
+      } else { box.style.display = "none"; }
+    }
+
+    function handlePublicSearchKey(e) {
+      const box = document.getElementById('publicSuggestionBox');
+      const items = box ? box.getElementsByClassName("suggest-item") : [];
+      
+      if (e.keyCode == 40) { 
+        currentPublicFocus++; 
+        addActive(items, currentPublicFocus); 
+      } 
+      else if (e.keyCode == 38) { 
+        currentPublicFocus--; 
+        addActive(items, currentPublicFocus); 
+      } 
+      else if (e.keyCode == 13) { 
+        e.preventDefault(); 
+        if (currentPublicFocus > -1 && items[currentPublicFocus]) {
+          items[currentPublicFocus].click();
+        } else {
+          const rawInput = document.getElementById('publicSearch').value.trim();
+          if (!rawInput) return;
+          
+          const matchedKey = Object.keys(allPublicServices).find(k => isMatch(k, rawInput));
+
+          if (matchedKey) {
+            selectPublic(matchedKey);
+          } else {
+            document.getElementById('finalPublicResult').innerHTML = `
+              <div style="margin-top: 15px; padding: 12px; color: #d9534f; border: 1px solid #f5c6c6; background: #fdf7f7; border-radius: 6px; font-size: 13px;">
+                ❌ Không tìm thấy thông tin cho: <b>${rawInput}</b>
+              </div>
+            `;
+            if (box) box.style.display = "none";
+          }
+        }
+      }
+    }
+
+    function selectPublic(m) {
+      document.getElementById('publicSearch').value = m;
+      document.getElementById('publicSuggestionBox').style.display = "none";
+      const data = allPublicServices[m];
+      document.getElementById('finalPublicResult').innerHTML = `
+        <div style="margin-top: 15px; padding: 15px; border: 1px solid #e67e22; border-radius: 8px; background: #fffdfa;">
+          <div style="font-weight: bold; color: #d35400; margin-bottom: 8px; font-size: 15px;">🏛️ ${m}</div>
+          <div style="font-size: 13px; color: #555; margin-bottom: 8px; line-height: 1.4;"><b>Địa chỉ:</b> ${data.diaChi}</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #fcdcba; padding-top: 8px;">
+            <span style="font-size: 13px;"><b>Đường dây nóng:</b></span>
+            <span style="color:#d35400; font-weight:bold; font-size: 14px;">
+              <a href="tel:${data.sdt}" style="color:#d35400; text-decoration:none;"><i class="fa-solid fa-phone-volume"></i> ${data.sdt}</a>
+            </span>
+          </div>
+        </div>
+      `;
+    }
+
+    function addActive(items, focusIdx) {
+      if (!items || !items.length) return false;
+      for (let i = 0; i < items.length; i++) items[i].classList.remove("active");
+      if (focusIdx >= items.length) focusIdx = 0;
+      if (focusIdx < 0) focusIdx = (items.length - 1);
+      items[focusIdx].classList.add("active");
+      items[focusIdx].scrollIntoView({ block: 'nearest' });
+    }
+
+    // 5. Tra cứu danh sách theo mặt bệnh
     function showSpecialtyTable() {
       const specialty = document.getElementById('specialtySelect').value;
       const resDiv = document.getElementById('specialtyResult');
       const searchInput = document.getElementById('specialtySearchInput');
 
-      if (!specialty) { 
-        resDiv.innerHTML = ''; 
-        searchInput.style.display = 'none'; 
-        return; 
-      }
-
+      if (!specialty) { resDiv.innerHTML = ''; searchInput.style.display = 'none'; return; }
       currentSpecialtyData = allSpecialties[specialty];
-      searchInput.style.display = 'block'; 
-      searchInput.value = ''; 
-
+      searchInput.style.display = 'block'; searchInput.value = ''; 
       renderSpecialtyTable(currentSpecialtyData.rows); 
       resDiv.focus(); 
     }
 
     function filterSpecialtyTable() {
       if (!currentSpecialtyData) return;
-      const keyword = document.getElementById('specialtySearchInput').value.toLowerCase();
-      
+      const keyword = removeVietnameseTones(document.getElementById('specialtySearchInput').value);
       const filteredRows = currentSpecialtyData.rows.filter(row => {
         let isCategory = row[1] === "";
         if (keyword === "") return true; 
         if (isCategory) return false; 
-        
-        const rowString = row.join(" ").toLowerCase();
-        return rowString.includes(keyword);
+        return removeVietnameseTones(row.join(" ")).includes(keyword);
       });
-
       renderSpecialtyTable(filteredRows);
     }
 
     function renderSpecialtyTable(rowsToRender) {
       const resDiv = document.getElementById('specialtyResult');
-      
       if (!currentSpecialtyData || !currentSpecialtyData.headers) {
-        resDiv.innerHTML = '<p style="color:red; padding:15px;">Không có dữ liệu.</p>'; 
-        return; 
+        resDiv.innerHTML = '<p style="color:red; padding:15px;">Không có dữ liệu.</p>'; return; 
       }
 
       let html = `<table style="width:100%; border-collapse:collapse; font-size:13px; background: white; white-space: nowrap; position: relative;">
@@ -375,7 +448,6 @@
       } else {
         rowsToRender.forEach(row => {
           let isCategory = row[1] === ""; 
-
           if (isCategory) {
             html += `<tr style="background:#f4ebf9;">
               <td colspan="${currentSpecialtyData.headers.length}" style="padding:10px 8px; border:1px solid #ddd; font-weight:bold; color:#8e44ad; text-align:left;">
@@ -389,21 +461,31 @@
               if (cellText.toLowerCase() === 'x') {
                 cellText = `<span style="color:#28a745; font-weight:bold; font-size: 16px;">✔</span>`;
               }
-
               let style = "padding:8px; border:1px solid #ddd; text-align:center;";
               if (index === 0) style = "padding:8px; border:1px solid #ddd; font-weight:bold; text-align:left; white-space: normal; min-width: 150px;";
               if (index === 1) style = "padding:8px; border:1px solid #ddd; text-align:left; white-space: normal; min-width: 250px;";
               if (index === 2) style = "padding:8px; border:1px solid #ddd; color:red; font-weight:bold; white-space: normal;";
-
               html += `<td style="${style}">${cellText}</td>`;
             });
             html += `</tr>`;
           }
         });
       }
-      
       html += `</tbody></table>`;
       resDiv.innerHTML = html;
+    }
+
+    function clearAll() {
+      document.getElementById('addrIn').value = '';
+      document.getElementById('resultArea').innerHTML = '';
+    }
+
+    function copyTxt(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Xong!';
+        setTimeout(() => { btn.innerHTML = originalText; }, 1500);
+      });
     }
   </script>
 </body>
