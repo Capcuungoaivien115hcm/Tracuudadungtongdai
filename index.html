@@ -19,11 +19,6 @@
     .btn-clear { background: #6c757d; }
     .result-item { display: flex; align-items: center; justify-content: space-between; background: #f8faff; padding: 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #eef2f7; font-weight: bold; color: #0056b3; }
     .btn-copy { background: white; color: #007bff; border: 1px solid #007bff; padding: 5px 10px; font-size: 12px; border-radius: 4px; flex: none; width: auto; }
-    .history-container { margin-top: 15px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
-    .history-header { background: #f8f9fa; padding: 10px; cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
-    .history-content { display: block; padding: 10px; font-size: 12px; border-top: 1px solid #ddd; background: #fff; }
-    .hist-item { padding: 5px 0; border-bottom: 1px dashed #eee; color: #555; }
-    .hist-item:last-child { border-bottom: none; }
     .search-wrapper { position: relative; }
     .suggestion-box { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; z-index: 10; display: none; max-height: 200px; overflow-y: auto; border-radius: 0 0 6px 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .suggest-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; }
@@ -31,6 +26,8 @@
     .phone-card { margin-top: 15px; padding: 15px; border: 1px solid #28a745; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #f9fff9; }
     .logo-container { display: flex; justify-content: center; align-items: center; padding: 10px; background: #ffffff; min-height: 120px; }
     .logo-container img { max-width: 100%; max-height: 150px; object-fit: contain; border-radius: 8px; }
+    .btn-google-search { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 12px; background-color: #4285f4; color: white !important; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; transition: background 0.2s; }
+    .btn-google-search:hover { background-color: #3367d6; }
   </style>
 </head>
 <body>
@@ -54,13 +51,6 @@
             <button class="btn-clear" onclick="clearAll()">XÓA</button>
           </div>
           <div id="resultArea"></div>
-          <div class="history-container">
-            <div class="history-header" onclick="toggleHistory()">
-              <span><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử (3 cái gần nhất)</span>
-              <i id="histIcon" class="fa-solid fa-chevron-up"></i>
-            </div>
-            <div id="histLog" class="history-content">Trống</div>
-          </div>
         </div>
 
       </div>
@@ -121,7 +111,6 @@
     const webAppUrl = "https://script.google.com/macros/s/AKfycbz3yvaCZNfc1zTRQTuv4Zvr_9nCbyeOyzXYrhRl3XLKK8xdldh0iQrLgz-I2UHgEM9o4w/exec"; 
     
     let allPhones = {}, allHospitals = {}, allSpecialties = {}, allPublicServices = {};
-    let historyList = [];
     let currentFocus = -1, currentHospitalFocus = -1, currentPublicFocus = -1;
     let currentSpecialtyData = null;
 
@@ -184,6 +173,15 @@
       btn.innerText = "ĐANG XỬ LÝ...";
       btn.disabled = true;
 
+      const queryStr = `${val} đổi thành phường gì`;
+      const googleSearchBtnHtml = `
+        <div style="margin-top: 10px;">
+          <a href="https://www.google.com/search?q=${encodeURIComponent(queryStr)}" target="_blank" class="btn-google-search">
+            <i class="fa-brands fa-google"></i> Tra cứu sáp nhập trên Google <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px;"></i>
+          </a>
+        </div>
+      `;
+
       fetch(`${webAppUrl}?diaChiCu=${encodeURIComponent(val)}`)
         .then(r => r.text())
         .then(res => {
@@ -191,7 +189,7 @@
           btn.disabled = false;
           const resultArea = document.getElementById('resultArea');
           if(res.includes("❌")) {
-            resultArea.innerHTML = `<div style="color:red; font-weight:bold; margin-top:10px;">${res}</div>`;
+            resultArea.innerHTML = `<div style="color:red; font-weight:bold; margin-top:10px;">${res}</div>` + googleSearchBtnHtml;
             return;
           }
           const lines = res.split('\n');
@@ -200,28 +198,12 @@
               <span>${l}</span>
               <button class="btn-copy" onclick="copyTxt('${l}', this)"><i class="fa-regular fa-copy"></i> Copy</button>
             </div>
-          `).join('');
-          updateHistory(val, lines.join(' | '));
+          `).join('') + googleSearchBtnHtml;
         })
         .catch(err => {
           btn.innerText = "CHUYỂN ĐỔI"; btn.disabled = false;
           alert("Lỗi kết nối: " + err);
         });
-    }
-
-    function updateHistory(oldAddr, newAddr) {
-      historyList.unshift({ old: oldAddr, new: newAddr });
-      if(historyList.length > 3) historyList.pop();
-      document.getElementById('histLog').innerHTML = historyList.map(h => `
-        <div class="hist-item">• <b>${h.old}</b> → <span style="color:#28a745">${h.new}</span></div>
-      `).join('');
-    }
-
-    function toggleHistory() {
-      const content = document.getElementById('histLog');
-      const icon = document.getElementById('histIcon');
-      content.style.display = content.style.display === "none" ? "block" : "none";
-      icon.className = content.style.display === "none" ? "fa-solid fa-chevron-down" : "fa-solid fa-chevron-up";
     }
 
     // 2. Tra cứu phường
