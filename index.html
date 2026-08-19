@@ -59,7 +59,10 @@
         <!-- Khối Chuyển đổi địa chỉ -->
         <div class="section" style="margin-bottom: 0; flex: 1;">
           <h3 style="color:#0056b3"><i class="fa-solid fa-map-location-dot"></i> CHUYỂN ĐỔI ĐỊA CHỈ MỚI</h3>
-          <textarea id="addrIn" placeholder="Nhập địa chỉ cũ..." rows="3" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();doConvert();}"></textarea>
+          <div class="search-wrapper">
+            <textarea id="addrIn" placeholder="Nhập địa chỉ cũ..." rows="3" oninput="filterAddrSuggestions()" onkeydown="handleAddrKey(event)"></textarea>
+            <div id="addrSuggestionBox" class="suggestion-box"></div>
+          </div>
           <div class="btn-group">
             <button id="btnCvt" class="btn-convert" onclick="doConvert()">CHUYỂN ĐỔI</button>
             <button class="btn-clear" onclick="clearAll()">XÓA</button>
@@ -127,7 +130,8 @@
     const webAppUrl = "https://script.google.com/macros/s/AKfycbyIGY7a0iIK4FzAaWmA9xZxj0EFJwTl9ObKYtgBoUa9kXM93yLul5aqHIL2O5kvCchQwA/exec"; 
 
     let allPhones = {}, allHospitals = {}, allSpecialties = {}, allPublicServices = {};
-    let currentFocus = -1, currentHospitalFocus = -1, currentPublicFocus = -1;
+    let allOldAddresses = [];
+    let currentFocus = -1, currentHospitalFocus = -1, currentPublicFocus = -1, currentAddrFocus = -1;
     let currentSpecialtyData = null;
 
     // Helper bỏ dấu tiếng Việt
@@ -168,6 +172,7 @@
       fetch(`${webAppUrl}?action=getPhones`).then(r => r.json()).then(d => { allPhones = d; }).catch(e => console.error(e));
       fetch(`${webAppUrl}?action=getHospitals`).then(r => r.json()).then(d => { allHospitals = d; }).catch(e => console.error(e));
       fetch(`${webAppUrl}?action=getPublicServices`).then(r => r.json()).then(d => { allPublicServices = d; }).catch(e => console.error(e));
+      fetch(`${webAppUrl}?action=getOldAddresses`).then(r => r.json()).then(d => { allOldAddresses = d; }).catch(e => console.error(e));
 
       fetch(`${webAppUrl}?action=getSpecialties`).then(r => r.json()).then(d => { 
         allSpecialties = d;
@@ -225,6 +230,56 @@
           btn.innerText = "CHUYỂN ĐỔI"; btn.disabled = false;
           resultArea.innerHTML = `<div style="color:red; font-size:13px;">Lỗi tra cứu nội bộ: ${err}</div>` + googleSearchBtnHtml;
         });
+    }
+
+    // 1b. Gợi ý autocomplete cho ô nhập địa chỉ
+    function filterAddrSuggestions() {
+      const q = document.getElementById('addrIn').value.trim();
+      const box = document.getElementById('addrSuggestionBox');
+      box.innerHTML = ''; currentAddrFocus = -1;
+      if (!q || q.length < 2) { box.style.display = "none"; return; }
+
+      const matches = allOldAddresses.filter(item => isMatch(item.label, q)).slice(0, 8);
+      if (matches.length > 0) {
+        box.style.display = "block";
+        matches.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "suggest-item";
+          div.innerText = item.label;
+          div.onclick = () => selectAddrSuggestion(item.label);
+          box.appendChild(div);
+        });
+      } else { box.style.display = "none"; }
+    }
+
+    function handleAddrKey(e) {
+      const box = document.getElementById('addrSuggestionBox');
+      const items = box.getElementsByClassName("suggest-item");
+      const boxVisible = box.style.display === "block";
+
+      if (e.key === 'ArrowDown' && boxVisible) {
+        e.preventDefault();
+        currentAddrFocus++; addActive(items, currentAddrFocus);
+      } else if (e.key === 'ArrowUp' && boxVisible) {
+        e.preventDefault();
+        currentAddrFocus--; addActive(items, currentAddrFocus);
+      } else if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (boxVisible && currentAddrFocus > -1 && items[currentAddrFocus]) {
+          items[currentAddrFocus].click();
+        } else {
+          box.style.display = "none";
+          doConvert();
+        }
+      } else if (e.key === 'Escape') {
+        box.style.display = "none";
+      }
+    }
+
+    function selectAddrSuggestion(label) {
+      document.getElementById('addrIn').value = label;
+      document.getElementById('addrSuggestionBox').style.display = "none";
+      doConvert();
     }
 
     // 2. Tra cứu phường
@@ -481,6 +536,7 @@
     function clearAll() {
       document.getElementById('addrIn').value = '';
       document.getElementById('resultArea').innerHTML = '';
+      document.getElementById('addrSuggestionBox').style.display = 'none';
     }
 
     function copyTxt(text, btn) {
