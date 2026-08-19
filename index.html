@@ -26,17 +26,31 @@
     .phone-card { margin-top: 15px; padding: 15px; border: 1px solid #28a745; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #f9fff9; }
     .logo-container { display: flex; justify-content: center; align-items: center; padding: 10px; background: #ffffff; min-height: 120px; }
     .logo-container img { max-width: 100%; max-height: 150px; object-fit: contain; border-radius: 8px; }
-    .btn-google-search { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 12px; background-color: #4285f4; color: white !important; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; transition: background 0.2s; }
+
+    /* CSS Nút Tìm kiếm Google */
+    .btn-google-search {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background-color: #4285f4;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 13px;
+      transition: background-color 0.2s;
+    }
     .btn-google-search:hover { background-color: #3367d6; }
   </style>
 </head>
 <body>
   <div class="container">
     <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
-      
+
       <!-- CỘT TRÁI: Logo + Chuyển đổi địa chỉ -->
       <div style="flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 15px;">
-        
+
         <!-- Khối Logo -->
         <div class="section logo-container" style="margin-bottom: 0;">
           <img src="https://lh3.googleusercontent.com/d/1GbLCoMdr_pigkJf5AqLGdjESsd3Fk7kA" alt="Logo đơn vị" onerror="this.src='https://drive.google.com/thumbnail?id=1GbLCoMdr_pigkJf5AqLGdjESsd3Fk7kA&sz=w1000';">
@@ -50,6 +64,8 @@
             <button id="btnCvt" class="btn-convert" onclick="doConvert()">CHUYỂN ĐỔI</button>
             <button class="btn-clear" onclick="clearAll()">XÓA</button>
           </div>
+
+          <!-- Khu vực hiển thị kết quả -->
           <div id="resultArea"></div>
         </div>
 
@@ -57,7 +73,7 @@
 
       <!-- CỘT PHẢI: 3 Khối Tra cứu SĐT -->
       <div style="flex: 1; min-width: 350px; display: flex; flex-direction: column; gap: 15px;">
-        
+
         <!-- Khối 1: Phường -->
         <div class="section" style="margin-bottom: 0;">
           <h3 style="color:#28a745"><i class="fa-solid fa-phone"></i> TRA CỨU TRỰC BAN CA PHƯỜNG & ĐIỆN LỰC</h3>
@@ -94,12 +110,12 @@
     <!-- KHỐI DƯỚI CÙNG: Tra cứu Mặt Bệnh -->
     <div class="section" style="width: 100%; box-sizing: border-box;">
       <h3 style="color:#8e44ad"><i class="fa-solid fa-stethoscopes"></i> TRA CỨU DANH SÁCH BỆNH VIỆN THEO MẶT BỆNH</h3>
-      
+
       <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
         <select id="specialtySelect" onchange="showSpecialtyTable()" style="flex: 1; min-width: 250px; max-width: 350px; padding:12px; border-radius:6px; border:1px solid #ced4da; background-color: #fcfaff; font-weight: bold;">
           <option value="">-- Chọn mặt bệnh (Ví dụ: Đột quỵ, Sản khoa...) --</option>
         </select>
-        
+
         <input type="text" id="specialtySearchInput" placeholder="🔍 Nhập tên Bệnh viện hoặc Địa chỉ để lọc nhanh..." onkeyup="filterSpecialtyTable()" style="flex: 2; min-width: 300px; padding:12px; border-radius:6px; border:1px solid #ced4da; display: none;">
       </div>
 
@@ -108,8 +124,8 @@
   </div>
 
   <script>
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbz3yvaCZNfc1zTRQTuv4Zvr_9nCbyeOyzXYrhRl3XLKK8xdldh0iQrLgz-I2UHgEM9o4w/exec"; 
-    
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbyIGY7a0iIK4FzAaWmA9xZxj0EFJwTl9ObKYtgBoUa9kXM93yLul5aqHIL2O5kvCchQwA/exec"; 
+
     let allPhones = {}, allHospitals = {}, allSpecialties = {}, allPublicServices = {};
     let currentFocus = -1, currentHospitalFocus = -1, currentPublicFocus = -1;
     let currentSpecialtyData = null;
@@ -168,10 +184,12 @@
     function doConvert() {
       const val = document.getElementById('addrIn').value.trim();
       if(!val) return;
-      
+
       const btn = document.getElementById('btnCvt');
       btn.innerText = "ĐANG XỬ LÝ...";
       btn.disabled = true;
+
+      const resultArea = document.getElementById('resultArea');
 
       const queryStr = `${val} đổi thành phường gì`;
       const googleSearchBtnHtml = `
@@ -182,27 +200,30 @@
         </div>
       `;
 
+      resultArea.innerHTML = '';
+
+      // Tra cứu qua cơ sở dữ liệu nội bộ
       fetch(`${webAppUrl}?diaChiCu=${encodeURIComponent(val)}`)
         .then(r => r.text())
         .then(res => {
           btn.innerText = "CHUYỂN ĐỔI";
           btn.disabled = false;
-          const resultArea = document.getElementById('resultArea');
-          if(res.includes("❌")) {
-            resultArea.innerHTML = `<div style="color:red; font-weight:bold; margin-top:10px;">${res}</div>` + googleSearchBtnHtml;
-            return;
+
+          if(!res.includes("❌")) {
+            const lines = res.split('\n');
+            resultArea.innerHTML = lines.map(l => `
+              <div class="result-item">
+                <span>${l}</span>
+                <button class="btn-copy" onclick="copyTxt('${l}', this)"><i class="fa-regular fa-copy"></i> Copy</button>
+              </div>
+            `).join('') + googleSearchBtnHtml;
+          } else {
+            resultArea.innerHTML = `<div style="color:#d9534f; font-weight:bold; margin-top:10px;">${res}</div>` + googleSearchBtnHtml;
           }
-          const lines = res.split('\n');
-          resultArea.innerHTML = lines.map(l => `
-            <div class="result-item">
-              <span>${l}</span>
-              <button class="btn-copy" onclick="copyTxt('${l}', this)"><i class="fa-regular fa-copy"></i> Copy</button>
-            </div>
-          `).join('') + googleSearchBtnHtml;
         })
         .catch(err => {
           btn.innerText = "CHUYỂN ĐỔI"; btn.disabled = false;
-          alert("Lỗi kết nối: " + err);
+          resultArea.innerHTML = `<div style="color:red; font-size:13px;">Lỗi tra cứu nội bộ: ${err}</div>` + googleSearchBtnHtml;
         });
     }
 
@@ -212,7 +233,7 @@
       const box = document.getElementById('suggestionBox');
       box.innerHTML = ''; currentFocus = -1;
       if(!q) { box.style.display="none"; return; }
-      
+
       const matches = Object.keys(allPhones).filter(k => isMatch(k, q));
       if(matches.length > 0) {
         box.style.display = "block";
@@ -254,7 +275,7 @@
       const box = document.getElementById('hospitalSuggestionBox');
       box.innerHTML = ''; currentHospitalFocus = -1;
       if(!q) { box.style.display="none"; return; }
-      
+
       const matches = Object.keys(allHospitals).filter(k => isMatch(k, q));
       if(matches.length > 0) {
         box.style.display = "block";
@@ -307,7 +328,7 @@
       const box = document.getElementById('publicSuggestionBox');
       box.innerHTML = ''; currentPublicFocus = -1;
       if(!q) { box.style.display="none"; return; }
-      
+
       const matches = Object.keys(allPublicServices).filter(k => isMatch(k, q));
 
       if(matches.length > 0) {
@@ -325,7 +346,7 @@
     function handlePublicSearchKey(e) {
       const box = document.getElementById('publicSuggestionBox');
       const items = box ? box.getElementsByClassName("suggest-item") : [];
-      
+
       if (e.keyCode == 40) { 
         currentPublicFocus++; 
         addActive(items, currentPublicFocus); 
@@ -341,7 +362,7 @@
         } else {
           const rawInput = document.getElementById('publicSearch').value.trim();
           if (!rawInput) return;
-          
+
           const matchedKey = Object.keys(allPublicServices).find(k => isMatch(k, rawInput));
 
           if (matchedKey) {
@@ -419,12 +440,12 @@
       let html = `<table style="width:100%; border-collapse:collapse; font-size:13px; background: white; white-space: nowrap; position: relative;">
         <thead style="position: sticky; top: 0; z-index: 10;">
           <tr style="background:#8e44ad; color:white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">`;
-      
+
       currentSpecialtyData.headers.forEach(h => {
         html += `<th style="padding:10px 8px; border:1px solid #ddd; text-align:center;">${h}</th>`;
       });
       html += `</tr></thead><tbody>`;
-      
+
       if (rowsToRender.length === 0) {
         html += `<tr><td colspan="${currentSpecialtyData.headers.length}" style="padding: 15px; text-align: center; color: red;">Không tìm thấy bệnh viện nào khớp với từ khóa.</td></tr>`;
       } else {
